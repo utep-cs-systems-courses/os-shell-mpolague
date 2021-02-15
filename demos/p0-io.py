@@ -23,4 +23,3 @@ while 1:
         os.write(fdOut, strToPrint.encode()) # write to output file
         os.write(1    , strToPrint.encode()) # write to fd1 (standard output)
         lineNum += 1
-        
