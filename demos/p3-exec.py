@@ -45,7 +45,7 @@ elif rc == 0:                   # child
                     os.execve(program, args, os.environ) # try to exec program
                 except FileNotFoundError:             # ...expected
                     pass                              # ...fail quietly
-                
+    
             os.write(2, ("Child:    Could not exec %s\n" % args[0]).encode())
             sys.exit(1)                 # terminate with error
             
@@ -80,25 +80,3 @@ else:                           # parent (forked ok)
     childPidCode = os.wait()
     os.write(1, ("Parent: Child %d terminated with exit code %d\n" % 
                  childPidCode).encode())
-#---------------------------------------------------------------------
-#---------------------------------------------------------------------
-print("Terminated p3-exec.py")
-print("My part: ")
-# replacement = os.environ['PS1']
-
-
-#-------------------------------------------------------------------------------------        
-# will continue to ask the user for input until user wants to exit the program.        
-#while 1:
-#    print("Please enter the command: \n$ ")
-#    command = os.read(fdIn, 10000) #read up to 10k bytes
-#    if len(command) == 0: break #done if nothing read
-#    tokenized_string = tokenize(command)
-#    was_recognized = recognize_command(tokenized_string)
-#
-#    # user wants to exit program, program terminates
-#    if was_recognized == 1:
-#        print('Terminating MyShell...')
-#        print('Successfully terminated. Thank you for choosing MyShell.')
-#        break
-#
