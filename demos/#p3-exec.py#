@@ -69,13 +69,15 @@ def recognize_command(tokenized_string):
 # will tokenize the command entered and the first word will be "ls", which will list
 #    all possible files
 def tokenize(command):
-    tokenized_string = command.split()
+    tokenized_string = re.split(b"\n", command)
     return tokenized_string
 
 #-------------------------------------------------------------------------------------        
 # will continue to ask the user for input until user wants to exit the program.        
 while 1:
-    command = input("Please enter the command: \n$ ")
+    print("Please enter the command: \n$ ")
+    command = os.read(fdIn, 10000) #read up to 10k bytes
+    if len(command) == 0: break #done if nothing read
     tokenized_string = tokenize(command)
     was_recognized = recognize_command(tokenized_string)
 
