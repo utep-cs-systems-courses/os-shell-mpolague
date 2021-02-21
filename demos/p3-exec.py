@@ -1,6 +1,18 @@
 #! /usr/bin/env python3
 import os, sys, time, re
 from os.path import isfile, join
+prompt = "$ "
+
+def pwd():
+    print("Printing current working directory")
+
+def getcwd():
+    print("This returns the current working directory")
+    print(os.getcwd())
+
+def readLine():
+    comm = input()
+    return comm
 
 pid = os.getpid() # setting the pid
 
@@ -16,8 +28,10 @@ if rc < 0:
 # if the forking was successful, it outputs both child's and parent's pid
 elif rc == 0:                   # child
     def list_files():
-        for dir in re.split(":", os.environ['PATH']): # try each directory in the path
-            print("   ",dir)    
+        listoffiles = os.listdir('.')
+        for file in listoffiles:
+            print(" ",file)
+        
         return
 
     #----------------------------------------------------------------------------------
@@ -48,6 +62,24 @@ elif rc == 0:                   # child
     
             os.write(2, ("Child:    Could not exec %s\n" % args[0]).encode())
             sys.exit(1)                 # terminate with error
+        #--------- CD ------------
+        elif tokenized_string[0] == "cd":
+            new_dir = tokenized_string[1]
+            
+            if tokenized_string[1] == "..":
+                os.chdir("..")
+            
+            else:
+                try:
+                    os.chdir(new_dir)
+                except OSError:
+                    print("")
+                    print("Can't change the Current Working Directory!!!!")
+                    
+            print(os.getcwd())
+        #--------- CWD ------------
+        elif tokenized_string[0] == "cwd":
+            print(os.getcwd())
             
         else:
             print("Command: entered not recognized.")
@@ -64,10 +96,16 @@ elif rc == 0:                   # child
     os.write(1, ("Child: My pid==%d.  Parent's pid=%d\n" % 
                  (os.getpid(), pid)).encode())
     while 1:
-        command = input("Please enter command: \n$ ") 
+        if 'PS1' in os.environ:
+            os.write(1, (os.environ['PS1']).encode())
+        else:
+            os.write(1, prompt.encode())
+            
+        command = readLine()
+        command = tokenize(command)
+        
         if len(command) == 0: break #done if nothing read
-        tokenized_string = tokenize(command)
-        was_recognized = recognize_command(tokenized_string)
+        was_recognized = recognize_command(command)
 
         if was_recognized == 1:
             print('Terminating MyShell...')
