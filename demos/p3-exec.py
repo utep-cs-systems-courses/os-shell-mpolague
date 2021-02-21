@@ -3,17 +3,6 @@ import os, sys, time, re
 from os.path import isfile, join
 prompt = "$ "
 
-def pwd():
-    print("Printing current working directory")
-
-def getcwd():
-    print("This returns the current working directory")
-    print(os.getcwd())
-
-def readLine():
-    comm = input()
-    return comm
-
 pid = os.getpid() # setting the pid
 
 os.write(1, ("About to fork (pid:%d)\n" % pid).encode()) # forks
@@ -27,13 +16,36 @@ if rc < 0:
 
 # if the forking was successful, it outputs both child's and parent's pid
 elif rc == 0:                   # child
+    # ---- lists files in CWD ----
     def list_files():
         listoffiles = os.listdir('.')
         for file in listoffiles:
             print(" ",file)
-        
         return
+    # ---- prints CWD -----
+    def getcwd():
+        print(" ",os.getcwd())
+        
+    # ---- reads user input ----
+    def readLine():
+        comm = input()
+        return comm
 
+    # ---- change directory ----
+    def cd(command):
+        new_dir = command[1]
+            
+        if command[1] == "..":
+                os.chdir("..")
+            
+        else:
+            try:
+                os.chdir(new_dir)
+            except OSError:
+                print("")
+                print("Can't change the Current Working Directory, dir does not exist!!!!")
+                    
+        getcwd()
     #----------------------------------------------------------------------------------
     # Helper to recognize if the command entered by the user is legal or illegal
     # -- if returns 0 = keep askig for user input
@@ -50,36 +62,12 @@ elif rc == 0:                   # child
         elif tokenized_string[0] == "exit": #My shell terminates
             return 1
         
-        elif tokenized_string[0] == "wc" and len(tokenized_string) == 2:
-            args = ["wc", tokenized_string[1]]
-            for dir in re.split(":", os.environ['PATH']): # try each directory in the path
-                program = "%s/%s" % (dir, args[0])
-                os.write(1, ("Child:  ...trying to exec %s\n" % program).encode())
-                try:
-                    os.execve(program, args, os.environ) # try to exec program
-                except FileNotFoundError:             # ...expected
-                    pass                              # ...fail quietly
-    
-            os.write(2, ("Child:    Could not exec %s\n" % args[0]).encode())
-            sys.exit(1)                 # terminate with error
         #--------- CD ------------
         elif tokenized_string[0] == "cd":
-            new_dir = tokenized_string[1]
-            
-            if tokenized_string[1] == "..":
-                os.chdir("..")
-            
-            else:
-                try:
-                    os.chdir(new_dir)
-                except OSError:
-                    print("")
-                    print("Can't change the Current Working Directory!!!!")
-                    
-            print(os.getcwd())
+            cd(tokenized_string)
         #--------- CWD ------------
         elif tokenized_string[0] == "cwd":
-            print(os.getcwd())
+            getcwd()
             
         else:
             print("Command: entered not recognized.")
@@ -95,6 +83,7 @@ elif rc == 0:                   # child
     #----------------------------------------------------------------------------------
     os.write(1, ("Child: My pid==%d.  Parent's pid=%d\n" % 
                  (os.getpid(), pid)).encode())
+    #----------------------------------------------------------------------------------
     while 1:
         if 'PS1' in os.environ:
             os.write(1, (os.environ['PS1']).encode())
@@ -103,14 +92,31 @@ elif rc == 0:                   # child
             
         command = readLine()
         command = tokenize(command)
-        
-        if len(command) == 0: break #done if nothing read
-        was_recognized = recognize_command(command)
 
-        if was_recognized == 1:
+        #--------- CHECKS LENGTH OF INPUT -------
+        if len(command) == 0: break #done if nothing read
+        
+        #--------- LS -------------
+        if command[0] == 'ls':
+            if len(command) > 1:
+                print("ls: No such file or directory, command not recognized.")
+            list_files()
+
+        #--------- EXIT ----------
+        elif command[0] == "exit": #My shell terminates
             print('Terminating MyShell...')
             print('Successfully terminated. Thank you for choosing MyShell.')
             break
+        #--------- CD ------------
+        elif command[0] == "cd":
+            cd(command)
+        #--------- CWD ------------
+        elif command[0] == "cwd":
+            getcwd()
+            
+        else:
+            print("Command: entered not recognized.")
+            
     
 else:                           # parent (forked ok)
     os.write(1, ("Parent: My pid=%d.  Child's pid=%d\n" % 
