@@ -1,0 +1,11 @@
+  testShell.sh
+  myshell.py
+  reader.py~
+  myreadlines.py~
+  myreadlines.py
+  p3-exec.py
+  test.txt
+  text.txt
+  fabian.txt
+$ Command: entered not recognized.
+$ 
